@@ -6,12 +6,13 @@ import csv
 import numpy as np
 import torch
 
-model_name = 'all-MiniLM-L6-v2'
+# other models: all-mpnet-base-v2 multi-qa-mpnet-base-dot-v1  all-distilroberta-v1 all-MiniLM-L12-v2 multi-qa-distilbert-cos-v1
+model_name = 'multi-qa-mpnet-base-dot-v1'
 model = SentenceTransformer(model_name)
 
 def sbert(inputs):
     #Load sentences & embeddings from disc
-    with open(f'{model_name}_embeddings.pkl', "rb") as fIn:
+    with open(f'../../transformer_embeddings/{model_name}.pkl', "rb") as fIn:
         stored_data = pickle.load(fIn)
         stored_words = stored_data['words']
         stored_definitions = stored_data['sentences']
@@ -40,8 +41,8 @@ def sbert(inputs):
         #query_embeddings = util.normalize_embeddings(query_embeddings)
 
    
-        # We use cosine-similarity and torch.topk to find the highest 5 scores
-        cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
+        # We use cosine-similarity/dot product similary and torch.topk to find the highest 500 scores
+        cos_scores = util.dot_score(query_embedding, corpus_embeddings)[0]
         top_results = torch.topk(cos_scores, k=500)
 
         single_prediction = []
@@ -64,9 +65,9 @@ def sbert(inputs):
     
     return predictions
         
-sbert(["source of light"])
+print(sbert(["source of light"]))
 
-test_set_paths = ["/vol/bitbucket/wz1620/_githubrepo/ReverseDictionary/data/data_test_500_rand1_seen.json", "/vol/bitbucket/wz1620/_githubrepo/ReverseDictionary/data/data_test_500_rand1_unseen.json", "/vol/bitbucket/wz1620/_githubrepo/ReverseDictionary/data/data_desc_c.json"]
+test_set_paths = ["../../data/data_test_500_rand1_seen.json", "../../data/data_test_500_rand1_unseen.json", "../../data/data_desc_c.json"]
 def evaluate_test(ground_truth, prediction):
     accu_1 = 0.
     accu_10 = 0.
@@ -86,9 +87,10 @@ def evaluate_test(ground_truth, prediction):
                     accu_1 += 1
     return accu_1/length*100, accu_10/length*100, accu_100/length*100, np.median(pred_rank), np.sqrt(np.var(pred_rank))
 
-
 def evaluate():
    
+
+    test_sets = ["seen", "unseen", "description"]
     for i,test_set in enumerate(test_set_paths):
     
         inputs = []
@@ -100,7 +102,7 @@ def evaluate():
                 words.append(point['word'])
             
         predictions = sbert(inputs)
-        with open(f'{model_name}_{i}_results_.csv', 'w') as results:
+        with open(f'../../results/vector_space/{model_name}_dot_{test_sets[i]}_results_.csv', 'w') as results:
             writer = csv.writer(results)
             writer.writerow(['Description', 'Solution', 'Prediction rank', 'Predictions'])
 

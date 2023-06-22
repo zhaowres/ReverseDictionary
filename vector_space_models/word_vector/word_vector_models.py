@@ -21,7 +21,7 @@ models:
 """
 nltk.download('stopwords',download_dir='/vol/bitbucket/wz1620/nltk_data')
 
-model_name = 'fasttext-wiki-news-subwords-300'
+model_name = 'glove-wiki-gigaword-300'
 
 def baseline(inputs):
     wv = gensim.downloader.load(model_name)
@@ -39,10 +39,10 @@ def baseline(inputs):
 
     def find_words(input):    
         positive_words = preprocess(input)
-        target_words = [i[0] for i in wv.most_similar(positive=positive_words, topn=200)]  
+        predicted_words = [i[0] for i in wv.most_similar(positive=positive_words, topn=200)]  
         words = []    
 
-        for word in target_words:
+        for word in predicted_words_words:
              if (word in dict_words):
                  words.append(word)
         if (len(words) > 100):
@@ -99,7 +99,7 @@ def baseline(inputs):
 
     return predictions
 
-test_set_paths = ["/vol/bitbucket/wz1620/_githubrepo/ReverseDictionary/data/data_test_500_rand1_seen.json"]
+test_set_paths = ["../../data/data_test_500_rand1_seen.json", "../../data/data_test_500_rand1_unseen.json", "../../data/data_desc_c.json"]
 def evaluate_test(ground_truth, prediction):
     accu_1 = 0.
     accu_10 = 0.
@@ -121,6 +121,8 @@ def evaluate_test(ground_truth, prediction):
 
 def evaluate():
    
+
+    test_sets = ["seen", "unseen", "description"]
     for i,test_set in enumerate(test_set_paths):
     
         inputs = []
@@ -132,7 +134,7 @@ def evaluate():
                 words.append(point['word'])
             
         predictions = baseline(inputs)
-        with open(f'{model_name}_{i}_results_.csv', 'w') as results:
+        with open(f'../..y/results/vector_space/{model_name}_{test_sets[i]}_results_.csv', 'w') as results:
             writer = csv.writer(results)
             writer.writerow(['Description', 'Solution', 'Prediction rank', 'Predictions'])
 
