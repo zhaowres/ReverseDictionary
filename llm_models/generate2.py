@@ -1,34 +1,36 @@
-from transformers import T5Tokenizer, T5ForConditionalGeneration
+import transformers
+from datasets import load_dataset
+from transformers import AutoTokenizer
+from transformers import AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer
 import json
 import csv
 
-def t5(sentences):
-    # Load the fine-tuned T5 model and tokenizer '/vol/bitbucket/wz1620/t5/t5-small-revdict/checkpoint-250000'
-    model_path = "../t5_models/t5-base-revdict/checkpoint-235000"
-    tokenizer = T5Tokenizer.from_pretrained(model_path)
-    model = T5ForConditionalGeneration.from_pretrained(model_path)
-    task_prefix = "solve: "
+model_name = "t5-base-revdict/checkpoint-235000"
+model_dir = f"../t5-models/{model_name}"
 
-    inputs = tokenizer([task_prefix + sentence for sentence in sentences], return_tensors="pt", padding=True)
+def generate(inputs):
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
 
-    # input_ids = tokenizer.encode(inputs, return_tensors='pt')
+    max_input_length = 128
 
-    # Generate multiple outputs
-    output = model.generate(
-        input_ids=inputs["input_ids"],
-        max_length=50, 
-        num_beams=120, 
-        no_repeat_ngram_size = 2,
-        num_return_sequences=100, 
-        early_stopping=True
-    )
+    prefix = "solve: "
+            
+    inputs = tokenizer([prefix + sentence for sentence in inputs], return_tensors="pt", padding=True)
 
-    # Decode and print the generated text
-    generated_text = tokenizer.batch_decode(output, skip_special_tokens=True)
-    print("Generated Text: ", generated_text)
-    n = 100 
-    generated_text = [generated_text[i:i + n] for i in range(0, len(generated_text), n)]
+    # generate text for each batch
+  
+    predictions = model.generate(    
+                    input_ids=inputs["input_ids"],
+                    attention_mask=inputs["attention_mask"], 
+                    num_beams = 100,
+                    num_return_sequences = 100,
+                    )
+
+    generated_text = tokenizer.batch_decode(predictions, skip_special_tokens=True)
+
     return generated_text
+
 
 test_set_paths = ["../data/data_test_500_rand1_seen.json", "../data/data_test_500_rand1_unseen.json", "../data/data_desc_c.json"]
 def evaluate_test(ground_truth, prediction):
@@ -51,8 +53,6 @@ def evaluate_test(ground_truth, prediction):
     return accu_1/length*100, accu_10/length*100, accu_100/length*100, np.median(pred_rank), np.sqrt(np.var(pred_rank))
 
 def evaluate():
-   
-
     test_sets = ["seen", "unseen", "description"]
     for i,test_set in enumerate(test_set_paths):
     
@@ -64,8 +64,8 @@ def evaluate():
                 inputs.append(point['definitions'])
                 words.append(point['word'])
             
-        predictions = t5(inputs)
-        with open(f'../results/llm/t5_base_results_.csv', 'w') as results:
+        predictions = generate(inputs)
+        with open(f'../results/llm/{model_name}_{test_set}_results_.csv', 'w') as results:
             writer = csv.writer(results)
             writer.writerow(['Description', 'Solution', 'Prediction rank', 'Predictions'])
 
@@ -83,5 +83,4 @@ def evaluate():
             
             writer.writerow(evaluate_test(words, predictions))
 
-t5(["a feeling of excitement", "a musical instrument with strings"])
 evaluate()

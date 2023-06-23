@@ -42,7 +42,7 @@ def baseline(inputs):
         predicted_words = [i[0] for i in wv.most_similar(positive=positive_words, topn=200)]  
         words = []    
 
-        for word in predicted_words_words:
+        for word in predicted_words:
              if (word in dict_words):
                  words.append(word)
         if (len(words) > 100):
@@ -64,15 +64,13 @@ def baseline(inputs):
             if w not in stop_words:
                 filtered_sentence.append(w)
 
-        #stem and lemmatize
-        possible_words = input.split()
-        for i in range(len(possible_words) - 1, -1, -1):
-            if possible_words[i] not in vocab:                    
-                del possible_words[i]       
+        for i in range(len(filtered_sentence) - 1, -1, -1):
+            if filtered_sentence[i] not in vocab:                    
+                del filtered_sentence[i]       
 
         # replace n-grams with phrases
         possible_expressions = []
-        for w in [possible_words[i:i+3] for i in range(len(possible_words)-3+1)]:        
+        for w in [filtered_sentence[i:i+3] for i in range(len(filtered_sentence)-3+1)]:        
             possible_expressions.append('_'.join(w))            
 
         ex_to_remove = []
@@ -87,9 +85,9 @@ def baseline(inputs):
         words_to_remove = sorted(set(words_to_remove))    
 
         words = [possible_expressions[i] for i in ex_to_remove]    
-        for i in range(len(possible_words)):
+        for i in range(len(filtered_sentence)):
             if i not in words_to_remove:
-                words.append(possible_words[i])    
+                words.append(filtered_sentence[i])    
 
         return words
 
@@ -134,7 +132,7 @@ def evaluate():
                 words.append(point['word'])
             
         predictions = baseline(inputs)
-        with open(f'../..y/results/vector_space/{model_name}_{test_sets[i]}_results_.csv', 'w') as results:
+        with open(f'../../results/vector_space/{model_name}_{test_sets[i]}_results_.csv', 'w') as results:
             writer = csv.writer(results)
             writer.writerow(['Description', 'Solution', 'Prediction rank', 'Predictions'])
 

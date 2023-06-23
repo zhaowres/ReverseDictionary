@@ -6,13 +6,13 @@ import csv
 import numpy as np
 import torch
 
-# other models: all-mpnet-base-v2 multi-qa-mpnet-base-dot-v1  all-distilroberta-v1 all-MiniLM-L12-v2 multi-qa-distilbert-cos-v1
+# other models: all-mpnet-base-v2 multi-qa-mpnet-base-dot-v1  all-distilroberta-v1 all-MiniLM-L12-v2 multi-qa-distilbert-cos-v1 all-MiniLM-L6-v2
 model_name = 'multi-qa-mpnet-base-dot-v1'
 model = SentenceTransformer(model_name)
 
 def sbert(inputs):
     #Load sentences & embeddings from disc
-    with open(f'../../transformer_embeddings/{model_name}.pkl', "rb") as fIn:
+    with open(f'../../transformer_embeddings/{model_name}_embeddings.pkl', "rb") as fIn:
         stored_data = pickle.load(fIn)
         stored_words = stored_data['words']
         stored_definitions = stored_data['sentences']
