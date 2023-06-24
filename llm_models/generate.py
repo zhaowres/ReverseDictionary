@@ -18,7 +18,7 @@ def t5(sentences):
         input_ids=inputs["input_ids"],
         max_length=50, 
         num_beams=120, 
-        no_repeat_ngram_size = 2,m
+        no_repeat_ngram_size = 2,
         num_return_sequences=100, 
         early_stopping=True
     )
@@ -83,5 +83,4 @@ def evaluate():
             
             writer.writerow(evaluate_test(words, predictions))
 
-t5(["a feeling of excitement", "a musical instrument with strings"])
 evaluate()
