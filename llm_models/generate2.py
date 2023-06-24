@@ -7,7 +7,7 @@ import csv
 import numpy as np
 
 #models: "t5-small-revdict/checkpoint-240000" "t5-base-revdict/checkpoint-240000" "t5-large-revdict/checkpoint-240000"
-model_name = "t5-small-revdict/checkpoint-240000"
+model_name = "t5-base-revdict/checkpoint-240000"
 model_dir = f"../t5-models/{model_name}"
 
 def generate(inputs):
@@ -30,7 +30,8 @@ def generate(inputs):
 
             # do_sample=True,
 
-            # num_beam_groups=50,
+            num_beam_groups=4,
+            diversity_penalty = 1.0
             )
 
         generated_text = tokenizer.batch_decode(predictions, skip_special_tokens=True)
@@ -72,7 +73,7 @@ def evaluate():
                 words.append(point['word'])
             
         predictions = generate(inputs)
-        with open(f'../results/llm/t5_small_{test_sets[i]}_beam_results.csv', 'w') as results:
+        with open(f'../results/llm/t5_large_{test_sets[i]}_diverse_beam_results.csv', 'w') as results:
             writer = csv.writer(results)
             writer.writerow(['Description', 'Solution', 'Prediction rank', 'Predictions'])
 
@@ -91,5 +92,5 @@ def evaluate():
             
             writer.writerow(evaluate_test(words, predictions))
 
-print(generate(["pieces of information that are true", "when somebody takes the same route as somebody further ahead in order to end up in the same place"]))
+print(generate(["the sweet liquid stored inside fruit that is healthy and delicious to drink"]))
 evaluate()
