@@ -18,7 +18,7 @@ def t5(sentences):
         input_ids=inputs["input_ids"],
         max_length=50, 
         num_beams=120, 
-        no_repeat_ngram_size = 2,
+        no_repeat_ngram_size = 2,m
         num_return_sequences=100, 
         early_stopping=True
     )

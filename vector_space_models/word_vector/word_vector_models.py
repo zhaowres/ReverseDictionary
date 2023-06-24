@@ -21,7 +21,7 @@ models:
 """
 nltk.download('stopwords',download_dir='/vol/bitbucket/wz1620/nltk_data')
 
-model_name = 'glove-wiki-gigaword-300'
+model_name = 'fasttext-wiki-news-subwords-300'
 
 def baseline(inputs):
     wv = gensim.downloader.load(model_name)
@@ -39,14 +39,14 @@ def baseline(inputs):
 
     def find_words(input):    
         positive_words = preprocess(input)
-        predicted_words = [i[0] for i in wv.most_similar(positive=positive_words, topn=200)]  
+        predicted_words = [i[0] for i in wv.most_similar(positive=positive_words, topn=1000)]  
         words = []    
 
         for word in predicted_words:
              if (word in dict_words):
                  words.append(word)
         if (len(words) > 100):
-             words = words[0:10]
+             words = words[0:100]
 
         return words
 

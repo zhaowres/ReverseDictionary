@@ -4,32 +4,39 @@ from transformers import AutoTokenizer
 from transformers import AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer
 import json
 import csv
+import numpy as np
 
-model_name = "t5-base-revdict/checkpoint-235000"
+#models: "t5-small-revdict/checkpoint-240000" "t5-base-revdict/checkpoint-240000" "t5-large-revdict/checkpoint-240000"
+model_name = "t5-small-revdict/checkpoint-240000"
 model_dir = f"../t5-models/{model_name}"
 
 def generate(inputs):
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
 
-    max_input_length = 128
+    mini_inputs = [inputs[i:i + 1] for i in range(0, len(inputs), 1)] 
+    output = []
+    for inp in mini_inputs:
+        max_input_length = 128
 
-    prefix = "solve: "
-            
-    inputs = tokenizer([prefix + sentence for sentence in inputs], return_tensors="pt", padding=True)
+        inp = tokenizer([sentence for sentence in inp], max_length=max_input_length, return_tensors="pt", padding=True)
 
-    # generate text for each batch
-  
-    predictions = model.generate(    
-                    input_ids=inputs["input_ids"],
-                    attention_mask=inputs["attention_mask"], 
-                    num_beams = 100,
-                    num_return_sequences = 100,
-                    )
+        # generate text for each batch
+        predictions = model.generate(    
+            input_ids=inp["input_ids"],
+            attention_mask=inp["attention_mask"], 
+            num_beams = 100,
+            num_return_sequences = 100,
 
-    generated_text = tokenizer.batch_decode(predictions, skip_special_tokens=True)
+            # do_sample=True,
 
-    return generated_text
+            # num_beam_groups=50,
+            )
+
+        generated_text = tokenizer.batch_decode(predictions, skip_special_tokens=True)
+        generated_text = [generated_text[x:x+100] for x in range(0, len(generated_text), 100)]
+        output.extend(generated_text)
+    return output
 
 
 test_set_paths = ["../data/data_test_500_rand1_seen.json", "../data/data_test_500_rand1_unseen.json", "../data/data_desc_c.json"]
@@ -50,12 +57,12 @@ def evaluate_test(ground_truth, prediction):
                 accu_10 += 1
                 if ground_truth[i] == prediction[i][0]:
                     accu_1 += 1
-    return accu_1/length*100, accu_10/length*100, accu_100/length*100, np.median(pred_rank), np.sqrt(np.var(pred_rank))
+    return np.median(pred_rank), accu_1/length*100, accu_10/length*100, accu_100/length*100, np.sqrt(np.var(pred_rank))
 
 def evaluate():
     test_sets = ["seen", "unseen", "description"]
     for i,test_set in enumerate(test_set_paths):
-    
+        
         inputs = []
         words = []
         with open(test_set) as f:
@@ -65,7 +72,7 @@ def evaluate():
                 words.append(point['word'])
             
         predictions = generate(inputs)
-        with open(f'../results/llm/{model_name}_{test_set}_results_.csv', 'w') as results:
+        with open(f'../results/llm/t5_small_{test_sets[i]}_beam_results.csv', 'w') as results:
             writer = csv.writer(results)
             writer.writerow(['Description', 'Solution', 'Prediction rank', 'Predictions'])
 
@@ -77,10 +84,12 @@ def evaluate():
                     if (value2 == words[i]):
                         correct += 1
                         rank[i] = j+1
+                        break
 
 
                 writer.writerow([inputs[i], words[i], rank[i], predictions[i]])
             
             writer.writerow(evaluate_test(words, predictions))
 
+print(generate(["pieces of information that are true", "when somebody takes the same route as somebody further ahead in order to end up in the same place"]))
 evaluate()

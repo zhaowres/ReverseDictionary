@@ -10,7 +10,7 @@ from transformers import AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq, Seq2SeqT
 model_checkpoint = "t5-large"
 
 def finetune_t5(model_name):
-
+    
     datasets = load_dataset('json', data_files={"train": "../data/data_train.json", "validation": "../data/data_dev.json"})
     datasets = datasets.remove_columns(["lexnames", "root_affix", "sememes"])
 

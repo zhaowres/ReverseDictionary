@@ -8,5 +8,5 @@ source /vol/cuda/11.7.1/setup.sh
 TERM=vt100 # or TERM=xterm
 /usr/bin/nvidia-smi
 uptime
-python generate.py
+python generate2.py
                     

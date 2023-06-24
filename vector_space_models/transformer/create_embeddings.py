@@ -4,7 +4,7 @@ import json
 import pickle
 import re 
 
-# other models: all-mpnet-base-v2 multi-qa-mpnet-base-dot-v1  all-distilroberta-v1 all-MiniLM-L12-v2 multi-qa-distilbert-cos-v1
+# other models: all-mpnet-base-v2 multi-qa-mpnet-base-dot-v1  all-distilroberta-v1 all-MiniLM-L12-v2 multi-qa-distilbert-cos-v1 all-MiniLM-L6-v2 
 model_name = 'all-mpnet-base-v2'
 embedder = SentenceTransformer(model_name)
 
